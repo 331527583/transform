@@ -44,11 +44,6 @@ public:
 				praseLoginPkg(pszData,iSize);
 				break;
 			}
-		case CMD_LOGOUT:
-			{
-				praseLogoutPkg(pszData,iSize);
-				break;
-			}
 		case CMD_JOIN_ROOM:
 			{
 				praseJoinRoomPkg(pszData,iSize);
@@ -146,7 +141,7 @@ public:
 		cout<<"data="<<sOut<<endl;
 		return 0;
 	}
-    void onWork(int iTaskType,void *pData)
+    void onWork(int iTaskType,void *pData,int iIndex)
     {
 
     }

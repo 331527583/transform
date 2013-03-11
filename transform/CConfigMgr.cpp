@@ -65,6 +65,7 @@ bool CConfigMgr::init( const string &sProgramName )
 	oCfg.getValue("comm", "http_max_send_buffer",m_stConfig.dwMaxHttpSendBufSize,  10240*1024);
 
 	oCfg.getValue("transform","rooms_xml_path",m_stConfig.sRoomsXmlPath,"./rooms.xml");
+	oCfg.getValue("transform","session_timeout",m_stConfig.dwSessionTimeOut,30);
 
     CLog::init(m_stConfig.sLogPath+"/"+m_stConfig.sProgramName,m_stConfig.dwLogFileSize,m_stConfig.dwLogFileCount,m_stConfig.bShowCmd,m_stConfig.cLogLevel,m_stConfig.bShowLine);
 

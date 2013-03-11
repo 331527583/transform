@@ -33,7 +33,7 @@ public:
 	};
 	typedef map<string,SPlayer*> MAP_PLAYER;
 
-	MAP_PLAYER all(){ return m_mapPlayer; } 
+	MAP_PLAYER & all(){ return m_mapPlayer; } 
 
 	SPlayer * add(const string &sName);
 

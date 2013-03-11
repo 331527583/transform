@@ -62,6 +62,8 @@ struct SConfig{
 	
 	string sRoomsXmlPath;//房间配置文件 
 
+	uint32_t dwSessionTimeOut;//会话空闲时间
+
 	int iTcpSrvId;
 	int iHttpSrvId;
 	//其他

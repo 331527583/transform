@@ -7,16 +7,28 @@
 using namespace lce;
 using namespace std;
 
+const int TIME_OUT_CHECK = 1000;
 
 class CProcCenter :public CTask, public CProcessor
 {
 public:
 	
+	enum{
+
+		TIMER_SESSION_TIMEOUT = 1,
+	};
+	
+	enum{
+
+		MSG_SESSION_TIMEOUT = 1,
+	};
+
 	struct SRoomInfo
 	{
 		string sRoomId;
 		uint16_t wMaxNum;
 	};
+
 
 	typedef vector<SRoomInfo> VEC_ROOM_INFO;
 

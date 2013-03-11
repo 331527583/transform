@@ -59,6 +59,12 @@ public:
 		return true;
 	}
 
+	VEC_SESSION & all()
+	{
+		return vecSessions;
+	}
+
+
 	~CSessionMgr(void);
 
 	static CSessionMgr& getInstance()

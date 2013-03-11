@@ -97,6 +97,8 @@ int CProcCenter::init()
 		}
 	}
 
+	CCommMgr::getInstance().addTimer(TIMER_SESSION_TIMEOUT,TIME_OUT_CHECK,this);
+
     return 0;
 }
 
@@ -234,11 +236,34 @@ void CProcCenter::onError(SSession &stSession,const char * szErrMsg,int iError)
 void CProcCenter::onTimer(uint32_t dwTimerId,void *pData)
 {
 
+	if(dwTimerId == TIMER_SESSION_TIMEOUT)
+	{
+		vector<int> *pvecSessionIds = new vector<int>;
+		dispatch(MSG_SESSION_TIMEOUT,pvecSessionIds);
+	}
 }
 
 
 void CProcCenter::onMessage(uint32_t dwMsgType,void *pData)
 {
+	
+	if(dwMsgType == MSG_SESSION_TIMEOUT)
+	{
+		
+		vector<int> vecSessionIds = *(vector<int>*)pData;
+
+		for(size_t i = 0;i<vecSessionIds.size();i++)
+		{
+			SSession *pstSession = CSessionMgr::getInstance().get(vecSessionIds[i]);
+			if(pstSession)
+			{
+				onClose(*pstSession);
+				CCommMgr::getInstance().close(*pstSession);
+			}
+			
+		}
+		delete (vector<int>*)pData;
+	}
 
 }
 
@@ -246,6 +271,27 @@ void CProcCenter::onMessage(uint32_t dwMsgType,void *pData)
 void CProcCenter::onWork(int iTaskType,void *pData,int iIndex)
 {
 
+	if(iTaskType == MSG_SESSION_TIMEOUT)
+	{
+		vector<int> *pvecSessionIds = (vector<int>*)pData;
+
+		CSessionMgr::VEC_SESSION &vecSession = CSessionMgr::getInstance().all();
+
+		time_t dwTimeNow = time(0);
+		for(size_t i = 0;i<vecSession.size();i++)
+		{
+			SSession *pstSession = vecSession[i];
+
+			if(pstSession)
+			{
+				if(dwTimeNow - pstSession->dwBeginTime > m_stConfig.dwSessionTimeOut)
+				{
+					pvecSessionIds->push_back(i);
+				}
+			}
+		}
+		CCommMgr::getInstance().sendMessage(MSG_SESSION_TIMEOUT,this,pvecSessionIds);
+	}
 }
 
 int CProcCenter::praseLoginPkg(const char * pszData, const int iSize)
@@ -1025,7 +1071,7 @@ int CProcCenter::onBroadcastServer(const string &sName,uint32_t dwReqId)
 
 int CProcCenter::pushDataToServer(const string &sName,const CAnyValue &oData)
 {
-	CPlayerMgr::MAP_PLAYER mapPlayers = CPlayerMgr::getInstance().all();
+	CPlayerMgr::MAP_PLAYER &mapPlayers = CPlayerMgr::getInstance().all();
 
 	CPkgTransform oPkg;
 	oPkg["player"]=sName;
