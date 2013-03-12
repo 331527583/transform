@@ -209,6 +209,9 @@ void CProcCenter::onConnect(SSession &stSession,bool bOk)
 
 	if(bOk)
 	{
+
+		lce::setNODelay(stSession.iFd);
+
 		SSession *pstSession = CSessionMgr::getInstance().add(stSession.iFd);
 
 		if(!pstSession)
@@ -624,9 +627,12 @@ int CProcCenter::onJoinRoom(const string &sName,const string &sType,const string
 	pstPlayer->sRoomType = sType;
 
 	//如果房间没人，第一个进入的人就是房主
+
+
 	if(pstRoom->setPlayers.empty())
 	{
 		pstRoom->sRoomer = sName;
+		LOG_INFO("roomer is %s",pstRoom->sRoomer.c_str());
 	}
 
 	pstRoom->setPlayers.insert(sName);
@@ -1221,6 +1227,9 @@ int CProcCenter::reResult(uint32_t dwReqId,bool bClose)
 int CProcCenter::onQuickStart(const string &sName,const string &sType,uint32_t dwReqId)
 {
 
+
+	LOG_INFO("onQuickStart player:%s",sName.c_str());
+
 	CRoomMgr::MAP_ROOM *pmapRooms = CRoomMgr::getInstance().rooms(sType);
 
 	SRequest *pstRequest = CRequestMgr::getInstance().get(dwReqId);
@@ -1268,10 +1277,18 @@ int CProcCenter::onQuickStart(const string &sName,const string &sType,uint32_t d
 	SPlayer *pstPlayer= CPlayerMgr::getInstance().get(sName);
 	pstPlayer->sRoomId = pstRoom->sRoomId;
 	pstPlayer->sRoomType = sType;
+
+	if(pstRoom->setPlayers.empty())
+	{
+		pstRoom->sRoomer = sName;
+		LOG_INFO("roomer is %s",pstRoom->sRoomer.c_str());
+	}
+
 	pstRoom->setPlayers.insert(sName);
 
 	pstRequest->oPkgResp["id"]=sRoomId;
 	pstRequest->oPkgResp["type"]=sType;
+
 
 	reResult(dwReqId);
 	pushChangeRoomData(sType,sRoomId);
