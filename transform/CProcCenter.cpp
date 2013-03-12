@@ -247,7 +247,7 @@ void CProcCenter::onTimer(uint32_t dwTimerId,void *pData)
 }
 
 
-void CProcCenter::onMessage(uint32_t dwMsgType,void *pData)
+void CProcCenter::onMessage(int dwMsgType,void *pData)
 {
 	
 	if(dwMsgType == MSG_SESSION_TIMEOUT)
@@ -422,8 +422,9 @@ int CProcCenter::praseBroadcastRoomPkg(const char * pszData, const int iSize)
 		string sName = pstRequest->oPkgReq["player"];
 		string sType = pstRequest->oPkgReq["type"];
 		string sRoomId = pstRequest->oPkgReq["id"];
+		string sCmd = pstRequest->oPkgReq["cmd"];
 
-		onBroadcastRoom(sName,sType,sRoomId,pstRequest->dwId);
+		onBroadcastRoom(sName,sType,sRoomId,sCmd,pstRequest->dwId);
 	}
 	catch(const CAnyValue::Error e)
 	{
@@ -442,8 +443,8 @@ int CProcCenter::praseBroadcastServerPkg(const char * pszData, const int iSize)
 		pstRequest->oPkgReq.decodeJSON(pszData,iSize);
 
 		string sName = pstRequest->oPkgReq["player"];
-	
-		onBroadcastServer(sName,pstRequest->dwId);
+		string sCmd = pstRequest->oPkgReq["cmd"];
+		onBroadcastServer(sName,sCmd,pstRequest->dwId);
 	}
 	catch(const CAnyValue::Error e)
 	{
@@ -464,6 +465,7 @@ int CProcCenter::praseBroadcastSomebodyPkg(const char * pszData, const int iSize
 		pstRequest->oPkgReq.decodeJSON(pszData,iSize);
 
 		string sName = pstRequest->oPkgReq["player"];
+		string sCmd = pstRequest->oPkgReq["cmd"];
 
 		CAnyValue oReceivers(pstRequest->oPkgReq["receivers"]);
 		set<string> setReceivers;
@@ -473,7 +475,7 @@ int CProcCenter::praseBroadcastSomebodyPkg(const char * pszData, const int iSize
 			setReceivers.insert((string)oReceivers[i]);
 		}
 
-		onBroadcastSomebody(sName,setReceivers,pstRequest->dwId);
+		onBroadcastSomebody(sName,setReceivers,sCmd,pstRequest->dwId);
 	}
 	catch(const CAnyValue::Error e)
 	{
@@ -930,7 +932,7 @@ int CProcCenter::pushKickRoomData(const string &sRoomer,const string &sName,cons
 	return 0;
 }
 
-int CProcCenter::onBroadcastRoom(const string &sName,const string & sType,const string &sRoomId,uint32_t dwReqId)
+int CProcCenter::onBroadcastRoom(const string &sName,const string & sType,const string &sRoomId,const string &sCmd,uint32_t dwReqId)
 {
 	LOG_INFO("onBroadcastRoom player:%s,roomId:%s",sName.c_str(),sRoomId.c_str());
 
@@ -976,14 +978,14 @@ int CProcCenter::onBroadcastRoom(const string &sName,const string & sType,const 
 		return 0;
 	}
 	
-	pushDataToRoom(sName,sType,sRoomId,oValue);
+	pushDataToRoom(sName,sType,sRoomId,sCmd,oValue);
 
 	reResult(dwReqId);
 	return 0;
 
 }
 
-int CProcCenter::pushDataToRoom(const string &sName,const string & sType,const string &sRoomId,const CAnyValue &oData)
+int CProcCenter::pushDataToRoom(const string &sName,const string & sType,const string &sRoomId,const string &sCmd,const CAnyValue &oData)
 {
 
 	//广播数据到客户端
@@ -994,6 +996,7 @@ int CProcCenter::pushDataToRoom(const string &sName,const string & sType,const s
 	oPkg["id"]=sRoomId;
 	oPkg["type"]=sType;
 	oPkg["player"]=sName;
+	oPkg["cmd"]=sCmd;
 	oPkg["params"]=oData;
 	oPkg.encodeJSON();
 	oPkg.head().setStx();
@@ -1033,7 +1036,7 @@ int CProcCenter::pushDataToRoom(const string &sName,const string & sType,const s
 
 }
 
-int CProcCenter::onBroadcastServer(const string &sName,uint32_t dwReqId)
+int CProcCenter::onBroadcastServer(const string &sName,const string &sCmd,uint32_t dwReqId)
 {
 	LOG_INFO("onBroadcastServer player:%s",sName.c_str());
 
@@ -1068,19 +1071,20 @@ int CProcCenter::onBroadcastServer(const string &sName,uint32_t dwReqId)
 
 
 	//全服推送数据
-	pushDataToServer(sName,oValue);
+	pushDataToServer(sName,sCmd,oValue);
 
 	reResult(dwReqId);
 	return 0;
 }
 
 
-int CProcCenter::pushDataToServer(const string &sName,const CAnyValue &oData)
+int CProcCenter::pushDataToServer(const string &sName,const string &sCmd,const CAnyValue &oData)
 {
 	CPlayerMgr::MAP_PLAYER &mapPlayers = CPlayerMgr::getInstance().all();
 
 	CPkgTransform oPkg;
 	oPkg["player"]=sName;
+	oPkg["cmd"]=sCmd;
 	oPkg["params"]=oData;
 	oPkg.encodeJSON();
 	oPkg.head().setStx();
@@ -1107,7 +1111,7 @@ int CProcCenter::pushDataToServer(const string &sName,const CAnyValue &oData)
 	return 0;
 }
 
-int CProcCenter::onBroadcastSomebody(const string &sName,const set<string> &setReceivers,uint32_t dwReqId)
+int CProcCenter::onBroadcastSomebody(const string &sName,const set<string> &setReceivers,const string &sCmd,uint32_t dwReqId)
 {
 	LOG_INFO("onBroadcastSomebody player:%s",sName.c_str());
 
@@ -1139,13 +1143,13 @@ int CProcCenter::onBroadcastSomebody(const string &sName,const set<string> &setR
 		return 0;
 	}
 
-	pushDataToSomebody(sName,setReceivers,oValue);
+	pushDataToSomebody(sName,setReceivers,sCmd,oValue);
 
 	reResult(dwReqId);
 	return 0;
 }
 
-int CProcCenter::pushDataToSomebody(const string &sName,const set<string> &setReceivers,const CAnyValue &oData)
+int CProcCenter::pushDataToSomebody(const string &sName,const set<string> &setReceivers,const string &sCmd,const CAnyValue &oData)
 {
 
 	//广播数据到客户端
@@ -1154,6 +1158,7 @@ int CProcCenter::pushDataToSomebody(const string &sName,const set<string> &setRe
 
 	oPkg["player"]=sName;
 	oPkg["params"]=oData;
+	oPkg["cmd"]=sCmd;
 	oPkg.encodeJSON();
 	oPkg.head().setStx();
 	oPkg.head().setCmd(CMD_BROADCAST_SOMEBODY_DATA);

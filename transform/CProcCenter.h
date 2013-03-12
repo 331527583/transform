@@ -43,7 +43,7 @@ public:
     void onError(SSession &stSession,const char * szErrMsg,int iError);
     void onWork(int iTaskType,void *pData,int iIndex);
     void onTimer(uint32_t dwTimerId,void *pData);
-    void onMessage(uint32_t dwMsgType,void *pData);
+    void onMessage(int dwMsgType,void *pData);
 
 
 	static CProcCenter& getInstance()
@@ -77,18 +77,18 @@ private:
 
 	int onKickRoom(const string &sRoomer,const string &sName,const string &sType,const string &sRoomId,uint32_t dwReqId);
 
-	int onBroadcastRoom(const string &sName,const string &sType,const string &sRoomId,uint32_t dwReqId);
-	int onBroadcastServer(const string &sName,uint32_t dwReqId);
-	int onBroadcastSomebody(const string &sName,const set<string> &setReceivers,uint32_t dwReqId);
+	int onBroadcastRoom(const string &sName,const string &sType,const string &sRoomId ,const string & sCmd,uint32_t dwReqId);
+	int onBroadcastServer(const string &sName,const string & sCmd,uint32_t dwReqId);
+	int onBroadcastSomebody(const string &sName,const set<string> &setReceivers,const string & sCmd,uint32_t dwReqId);
 
 	int onQuickStart(const string &sName,const string &sType,uint32_t dwReqId);
 
 	int onGetRoomsInfo(const string &sType,uint32_t dwReqId);
 	int onGetRoomInfo(const string &sType,const string &sRoomId,uint32_t dwReqId);
 
-	int pushDataToRoom(const string &sName,const string &sType,const string &sRoomId,const CAnyValue &oData);
-	int pushDataToServer(const string &sName,const CAnyValue &oData);
-	int pushDataToSomebody(const string &sName,const set<string> &setReceivers,const CAnyValue &oData);
+	int pushDataToRoom(const string &sName,const string &sType,const string &sRoomId,const string & sCmd,const CAnyValue &oData);
+	int pushDataToServer(const string &sName,const string & sCmd,const CAnyValue &oData);
+	int pushDataToSomebody(const string &sName,const set<string> &setReceivers,const string & sCmd,const CAnyValue &oData);
 
 	int pushKickRoomData(const string &sRoomer,const string &sName,const string &sType,const string &sRoomId);
 	int pushChangeRoomData(const string &sType,const string &sRoomId);
